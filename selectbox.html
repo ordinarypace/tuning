@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Select Box</title>
+</head>
+<body>
+<div id="selectbox">
+	<h1 id="title">셀렉트 박스 튜닝</h1>
+	<span id="counter"></span>
+	<div id="toggle">
+		<ul id="list">
+
+		</ul>
+	</div>
+</div>
+<script>
+    let counter = 0;
+    const data = [];
+    const timer = performance.timing;
+
+    const createItem = d => {
+        const el = document.createElement('li');
+
+        el.className = 'item';
+        el.innerhTML = d;
+
+        return el;
+    };
+
+    const Queue = (() => {
+       	const list = [];
+		let index = 0;
+
+       	return {
+       	    enQueue(data){
+       	        list.push(data);
+			},
+
+			deQueue(){
+       	        const item = list[index];
+       	        index++;
+
+       	        return item;
+			},
+
+			isEmpty(){
+       	        return !list.length;
+			}
+		}
+	})();
+
+	const processChange = deadline => {
+	    const fragment = document.createDocumentFragment();
+
+		while (deadline.timeRemaining() > 0 && !Queue.isEmpty()) {
+			let c = Queue.deQueue();
+
+			if(c) c.execute(fragment);
+		}
+
+        requestAnimationFrame(_ => $('#list').appendChild(fragment));
+
+		if (!Queue.isEmpty()) requestIdleCallback(processChange);
+		else console.timeEnd();
+	};
+
+
+
+	const $ = (selector, parent) => {
+		return (parent || document).querySelector(selector);
+	};
+
+	setInterval(_ => {
+		counter++;
+		$('#counter').innerHTML = counter;
+	}, 0);
+
+	for(let i = 0; i < 100000; i += 1){
+		data.push(`item${i}`);
+	}
+
+	$('#title').addEventListener('click', _ => {
+		$('#toggle').cssText = 'display:block';
+	});
+
+	for(let i = 0; i < data.length; i += 1){
+		Queue.enQueue({
+			execute(fragment){
+				fragment.appendChild(createItem(data[i]));
+			}
+		});
+	}
+
+	requestIdleCallback(processChange);
+
+
+
+
+
+</script>
+</body>
+</html>
